@@ -1,0 +1,41 @@
+{
+  "type": "collection",
+  "title": "Files",
+  "subtitle": "Documents, notes, and data, as they live on disk.",
+  "items": [
+    {
+      "title": "Welcome to Muse Mirror",
+      "description": "How folders, files, and live refresh work together.",
+      "category": "Guide",
+      "path": "Files/Welcome.md",
+      "meta": "Markdown"
+    },
+    {
+      "title": "Design notes",
+      "description": "The OpenMuse visual reference and the filesystem interaction model.",
+      "category": "Notes",
+      "path": "Files/Notes/Design.md",
+      "meta": "Nested document · Markdown"
+    },
+    {
+      "title": "Workspace data",
+      "description": "An ordinary JSON object with nested values and no special display schema.",
+      "category": "Data",
+      "path": "Files/workspace.json",
+      "meta": "JSON"
+    },
+    {
+      "title": "Content inventory",
+      "description": "A small CSV describing the sample file formats.",
+      "category": "Data",
+      "path": "Files/content-inventory.csv",
+      "meta": "CSV"
+    },
+    {
+      "title": "Browse the Notes folder",
+      "description": "Folders can be explored directly, without an index or a content schema.",
+      "category": "Folder",
+      "path": "Files/Notes"
+    }
+  ]
+}

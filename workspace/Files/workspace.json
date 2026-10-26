@@ -1,0 +1,20 @@
+{
+  "name": "Muse Mirror sample workspace",
+  "purpose": "A read-only view of local files",
+  "framework": "Next.js",
+  "sourceOfTruth": "filesystem",
+  "content": {
+    "editableIn": "Your text editor or your own scripts",
+    "apiKeysRequired": false,
+    "databaseRequired": false,
+    "cloudServiceRequired": false,
+    "refreshIntervalMilliseconds": 1500
+  },
+  "folders": ["Chat", "Activity", "Ideas", "Goals", "Files"],
+  "examples": [
+    { "format": "Markdown", "path": "Files/Welcome.md" },
+    { "format": "JSON", "path": "Files/workspace.json" },
+    { "format": "CSV", "path": "Files/content-inventory.csv" }
+  ],
+  "futureApi": null
+}

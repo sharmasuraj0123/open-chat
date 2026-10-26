@@ -1,0 +1,28 @@
+{
+  "type": "conversation",
+  "title": "Your files, with a little room to breathe.",
+  "subtitle": "A live, read-only view of this workspace.",
+  "messages": [
+    {
+      "role": "user",
+      "content": "I want a personal workspace that looks like OpenMuse, with a Next.js interface and the filesystem as its source of truth."
+    },
+    {
+      "role": "assistant",
+      "content": "Welcome to Muse Mirror. The folders on disk become your dock. Open one to browse its files, or follow a link below to see a saved conversation, a collection, or a document. Everything you see here comes from a file.",
+      "links": [
+        { "label": "Open the guide", "path": "Files/Welcome.md" },
+        { "label": "Browse files", "path": "Files" },
+        { "label": "See the project brief", "path": "Chat/index.json" }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "To change this workspace, edit its files in your editor. Add a top-level folder to give it a place in the dock. Change this index.json to update this conversation. The open app checks the disk every 1.5 seconds and reflects your changes.",
+      "links": [
+        { "label": "Design notes", "path": "Files/Notes/Design.md" },
+        { "label": "Inspect ordinary JSON", "path": "Files/workspace.json" }
+      ]
+    }
+  ]
+}

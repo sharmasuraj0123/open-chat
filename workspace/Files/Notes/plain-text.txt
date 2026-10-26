@@ -1,0 +1,5 @@
+This is an ordinary text file.
+
+No metadata or schema is required. Save text inside the workspace, navigate to it, and read it here.
+
+Edit this sentence in your text editor to try the live refresh.

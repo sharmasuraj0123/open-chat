@@ -1,0 +1,31 @@
+{
+  "type": "conversation",
+  "title": "A workspace you can shape on disk.",
+  "subtitle": "Saved project brief · editable in your text editor",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Build an app that looks like OpenMuse in Next.js. Make it read-only: top-level folders appear in the dock, and clicking an item loads its file or JSON response directly from the filesystem."
+    },
+    {
+      "role": "assistant",
+      "content": "The filesystem defines the experience. Folders organize it, documents explain it, and optional JSON shapes give conversations and collections their own presentation. Navigation is interactive; editing happens in your editor.",
+      "links": [
+        { "label": "Read the design notes", "path": "Files/Notes/Design.md" },
+        { "label": "Explore the folder structure", "path": "Files" }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "I want to choose the complete stack and connect my own API when I decide I need one."
+    },
+    {
+      "role": "assistant",
+      "content": "This version reads local files with Next.js and Node.js. Its content needs no model key, hosted database, or cloud service. An external process can write files into the workspace, and this interface will show the result.",
+      "links": [
+        { "label": "View a saved response", "path": "Chat/Examples/files-as-responses.json" },
+        { "label": "See workspace ideas", "path": "Ideas/index.json" }
+      ]
+    }
+  ]
+}

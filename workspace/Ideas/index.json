@@ -1,0 +1,28 @@
+{
+  "type": "collection",
+  "title": "Ideas",
+  "subtitle": "A few ways to make the workspace your own.",
+  "items": [
+    {
+      "title": "A place for each project",
+      "description": "Add a top-level folder for each project. Keep its brief, notes, and saved responses together.",
+      "status": "Idea",
+      "category": "Organization",
+      "path": "Files/Welcome.md"
+    },
+    {
+      "title": "Let your tools write the updates",
+      "description": "Have your own API or script save results as JSON or Markdown. The interface becomes a window into those files.",
+      "status": "Idea",
+      "category": "Your API",
+      "path": "Ideas/your-api.md"
+    },
+    {
+      "title": "Keep useful results close",
+      "description": "Link a conversation to its source document, checklist, or data file. Everything stays navigable within the workspace.",
+      "status": "Idea",
+      "category": "Context",
+      "path": "Chat/Examples/files-as-responses.json"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "type": "conversation",
+  "title": "A response is a file.",
+  "subtitle": "Saved example",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Where do the responses come from?"
+    },
+    {
+      "role": "assistant",
+      "content": "These messages are stored in Chat/Examples/files-as-responses.json. They are displayed exactly as saved; opening this conversation does not call a model. Edit a message on disk and the open view will update."
+    },
+    {
+      "role": "assistant",
+      "content": "You can also save plain Markdown, ordinary JSON, CSV, or text. Conversation and collection schemas are optional presentation hints.",
+      "links": [
+        { "label": "Plain Markdown", "path": "Files/Notes/Design.md" },
+        { "label": "Ordinary JSON", "path": "Files/workspace.json" },
+        { "label": "CSV sample", "path": "Files/content-inventory.csv" }
+      ]
+    }
+  ]
+}

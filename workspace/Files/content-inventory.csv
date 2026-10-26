@@ -1,0 +1,6 @@
+name,format,path,purpose
+Welcome,Markdown,Files/Welcome.md,Getting started
+Design notes,Markdown,Files/Notes/Design.md,Visual reference and interaction model
+Workspace data,JSON,Files/workspace.json,Ordinary nested data
+Saved conversation,JSON,Chat/Examples/files-as-responses.json,Conversation presentation
+Ideas,JSON,Ideas/index.json,Collection presentation

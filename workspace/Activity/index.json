@@ -1,0 +1,31 @@
+{
+  "type": "collection",
+  "title": "Activity",
+  "subtitle": "Saved project notes. These cards do not represent running jobs.",
+  "items": [
+    {
+      "title": "Capture the brief",
+      "description": "A read-only Next.js workspace where folders become navigation and files provide the content.",
+      "status": "Saved",
+      "category": "Project brief",
+      "path": "Chat/index.json",
+      "meta": "Conversation · JSON"
+    },
+    {
+      "title": "Keep the familiar visual language",
+      "description": "A centered column, soft cards, a small mascot, and a floating dock inspired by OpenMuse's original interface.",
+      "status": "Reference",
+      "category": "Design",
+      "path": "Files/Notes/Design.md",
+      "meta": "Design notes · Markdown"
+    },
+    {
+      "title": "Try a change on disk",
+      "description": "Edit a saved message or add a folder, then watch the active workspace refresh.",
+      "status": "Try it",
+      "category": "Getting started",
+      "path": "Files/Welcome.md",
+      "meta": "Guide · Markdown"
+    }
+  ]
+}

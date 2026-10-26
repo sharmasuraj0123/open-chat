@@ -1,0 +1,28 @@
+{
+  "type": "collection",
+  "title": "Goals",
+  "subtitle": "The principles behind this workspace.",
+  "items": [
+    {
+      "title": "The filesystem is the source of truth",
+      "description": "Keep content in ordinary files that can be inspected, copied, edited, and versioned with your own tools.",
+      "status": "Principle",
+      "category": "Local first",
+      "path": "Files/workspace.json"
+    },
+    {
+      "title": "Keep the app read-only",
+      "description": "Browse folders, open documents, and inspect saved conversations. Make content changes on disk.",
+      "status": "Principle",
+      "category": "Clear boundaries",
+      "path": "Files/Welcome.md"
+    },
+    {
+      "title": "Choose the complete stack",
+      "description": "Use Next.js for the interface now, and connect any content-producing API later through files you control.",
+      "status": "Principle",
+      "category": "Independence",
+      "path": "Ideas/your-api.md"
+    }
+  ]
+}
