@@ -16,19 +16,19 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --canvas: #101416; --card: #191f23; --text: #e7edf1; --muted: #a3afb8; --line: #303a41;
-  --blue: #223e52; --blue-dark: #8bc9ff; --sky: #1d303d; --green: #22372e; --lavender: #302b42; --orange: #3b3024;
-  --mascot-bg: #253841; --neutral: #303a42; --status-online: #8ec9a2; --status-warning: #ddba7b;
-  --scrollbar: #3d4a54; --subtle: #232c32; --success-text: #a2dbb4; --card-border: #2c363e;
-  --row-hover: #1e282e; --note-color: #a0b2bf; --input-border: #34414b; --input-shadow: #00000028;
-  --icon-muted: #a8b7c2; --placeholder: #a2aeb7; --focus-border: #88c7f5; --control: #29343c;
-  --caption: #99a8b3; --dock-border: #303b43; --dock-shadow: #00000045; --icon: #b5c1ca;
-  --dock-hover: #27333b; --author: #b1c0cb; --assistant: #222c33; --system: #1c252a;
-  --link-card: #18252e; --quiet: #9aaab5; --inline-code: #394c594d;
-  --code-bg: #121b21; --table-heading: #243039; --collection-border: #2b353d;
-  --card-hover-border: #466278; --card-hover: #202d36; --progress-track: #33404a; --progress-fill: #85bfe8;
-  --image-bg: #1b2428; --empty-icon: #9bb7cb; --warning-bg: #382b1d; --warning-text: #e3c498;
-  --sheet-shadow: #00000066; --backdrop: #060b10a6; --checking: #a4c7df;
+  --canvas: #212121; --card: #2a2a2a; --text: #ececec; --muted: #b4b4b4; --line: #3a3a3a;
+  --blue: #303030; --blue-dark: #a8c7fa; --sky: #303338; --green: #2b3730; --lavender: #343039; --orange: #3b342b;
+  --mascot-bg: #343434; --neutral: #3a3a3a; --status-online: #8ec9a2; --status-warning: #ddba7b;
+  --scrollbar: #505050; --subtle: #303030; --success-text: #a2dbb4; --card-border: #383838;
+  --row-hover: #2c2c2c; --note-color: #b4b4b4; --input-border: #424242; --input-shadow: #00000018;
+  --icon-muted: #bcbcbc; --placeholder: #b4b4b4; --focus-border: #a8c7fa; --control: #383838;
+  --caption: #b4b4b4; --dock-border: #3a3a3a; --dock-shadow: #00000030; --icon: #c4c4c4;
+  --dock-hover: #353535; --author: #c4c4c4; --assistant: #292929; --system: #262626;
+  --link-card: #333333; --quiet: #b4b4b4; --inline-code: #ffffff12;
+  --code-bg: #252525; --table-heading: #333333; --collection-border: #383838;
+  --card-hover-border: #535353; --card-hover: #303030; --progress-track: #404040; --progress-fill: #a8c7fa;
+  --image-bg: #292929; --empty-icon: #bcbcbc; --warning-bg: #3b342b; --warning-text: #e3c498;
+  --sheet-shadow: #00000055; --backdrop: #00000088; --checking: #b4b4b4;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
