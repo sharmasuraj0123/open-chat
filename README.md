@@ -32,6 +32,10 @@ MIRROR_ROOT=/absolute/path/to/your/content
 
 On Windows, forward slashes work too, for example `MIRROR_ROOT=D:/my-content`. Relative paths are resolved from the app directory. Run the app as a Node service with access to that directory; the browser itself does not read your disk directly.
 
+## Appearance
+
+Use the appearance icon beside the help button to choose **Light**, **Dark**, or **System**. System is the default and follows your device, including changes while the app is open. Your choice persists in this browser and synchronizes across its open tabs. It does not write to the content directory. Dark mode styles conversations, cards, documents, source/JSON views, navigation, menus, and notices; images and PDF contents retain their original colors.
+
 ## Views and navigation
 
 ### Folder view and dock
@@ -176,7 +180,7 @@ npm test
 npm run build
 ```
 
-The app includes 12 filesystem/API tests. Laptop layouts use a 960px maximum width; mobile retains the compact layout. Production builds currently report dynamic-filesystem tracing warnings because `MIRROR_ROOT` is resolved at runtime. Exact visual parity with upstream has not been independently verified.
+The app includes 12 filesystem/API tests and five theme-initialization tests. Laptop layouts use a 960px maximum width; mobile retains the compact layout. Production builds currently report dynamic-filesystem tracing warnings because `MIRROR_ROOT` is resolved at runtime. Exact visual parity with upstream has not been independently verified.
 
 ## Visual attribution
 

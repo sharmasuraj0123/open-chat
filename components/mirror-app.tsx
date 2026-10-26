@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { Entry, WorkspaceSnapshot } from "@/lib/types";
 import { FileContent } from "./content-view";
+import { ThemePicker } from "./theme-picker";
 
 const icons = new Map<string, LucideIcon>([
   ["chat", MessageCircle], ["activity", PanelsTopLeft], ["ideas", Lightbulb],
@@ -152,7 +153,7 @@ export function MirrorApp() {
       <button className="round-button header-left" aria-label="Browse workspace" onClick={() => setPanel("files")}><Menu size={20} strokeWidth={1.8} /></button>
       <button className="brand" onClick={() => navigate("")} aria-label="Open workspace home"><Mascot /><span className="brand-name">quirqy</span></button>
       <span className={`connection ${error ? "offline" : ""}`}><i />{error ? "Connection needs attention" : "Your files, in sync"}</span>
-      <button className="round-button header-right" aria-label="About this workspace" onClick={() => setPanel("about")}><CircleHelp size={20} strokeWidth={1.8} /></button>
+      <div className="header-actions header-right"><ThemePicker /><button className="round-button" aria-label="About this workspace" onClick={() => setPanel("about")}><CircleHelp size={20} strokeWidth={1.8} /></button></div>
     </header>
 
     <main className="main-content" ref={content} id="main-content">
