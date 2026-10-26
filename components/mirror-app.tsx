@@ -13,6 +13,7 @@ import { FileOverlay } from "./file-overlay";
 import { ChatComposer } from "./chat-composer";
 import { useDemoChat } from "@/hooks/use-demo-chat";
 import { ThemePicker } from "./theme-picker";
+import { QuirqyAvatar } from "./quirqy-avatar";
 
 const icons = new Map<string, LucideIcon>([
   ["chat", MessageCircle], ["activity", PanelsTopLeft], ["ideas", Lightbulb],
@@ -28,11 +29,6 @@ function entryIcon(entry: Entry): LucideIcon {
   if (/json|js|ts|py|css|html|csv|yaml|toml/.test(entry.extension)) return FileCode2;
   if (/png|jpg|jpeg|gif|webp|avif/.test(entry.extension)) return FileImage;
   return /md|txt|pdf/.test(entry.extension) ? FileText : File;
-}
-
-function Mascot() {
-  const [fallback, setFallback] = useState(false);
-  return <div className="mascot"><img src={fallback ? "/mascot.svg" : "/capybara.png"} onError={() => setFallback(true)} alt="Capybara mascot" width="58" height="58" /></div>;
 }
 
 function EntryRows({ entries, navigate, openFile, selected }: { entries: Entry[]; navigate: (path: string) => void; openFile: (path: string) => void; selected?: string }) {
@@ -179,7 +175,7 @@ export function MirrorApp() {
   return <div className="app-shell">
     <header className="app-header">
       <button className="round-button header-left" aria-label="Browse workspace" onClick={() => setPanel("files")}><Menu size={20} strokeWidth={1.8} /></button>
-      <button className="brand" onClick={() => navigate("")} aria-label="Open workspace home"><Mascot /><span className="brand-name">quirqy</span></button>
+      <div className="brand"><QuirqyAvatar pending={chat.pending} drafting={!!chat.draft.trim()} replied={chat.messages.at(-1)?.role === "assistant"} /><button className="brand-name" onClick={() => navigate("")} aria-label="Open workspace home">quirqy</button></div>
       <span className={`connection ${error ? "offline" : ""}`}><i />{error ? "Connection needs attention" : "Your files, in sync"}</span>
       <div className="header-actions header-right"><ThemePicker /><button className="round-button" aria-label="About this workspace" onClick={() => setPanel("about")}><CircleHelp size={20} strokeWidth={1.8} /></button></div>
     </header>

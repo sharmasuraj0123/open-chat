@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import "blobatar/motion.css";
+import "blobatar/gaze.css";
 import "./globals.css";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 

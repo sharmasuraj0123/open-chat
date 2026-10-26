@@ -214,3 +214,7 @@ The app includes filesystem/API, theme-initialization, and demo-chat configurati
 ## Visual attribution
 
 The layout and visual styles are ported from [CopilotKit/OpenMuse](https://github.com/CopilotKit/OpenMuse), especially `apps/mobile/App.tsx` and `apps/mobile/src/ui.tsx`, into Next.js. The upstream MIT notice is retained in `OPENMUSE-LICENSE`. open-chat uses its own filesystem data layer and the assistant name quirqy.
+
+### Interactive avatar
+
+The header uses [Blobatar](https://blobatar.dev/) to generate quirqy locally as SVG. It blinks, breathes, and follows the pointer. Hover or keyboard focus makes it wink; drafting a chat message makes it curious, waiting for a sample reply makes it think, and a completed reply makes it happy. Click the avatar (or press Enter/Space while focused) to change its shape and color. The quirqy name below still opens the workspace home. Motion and pointer tracking respect the system reduced-motion preference. This uses the bundled blobatar and @blobatar/react packages, with no hosted avatar API, credentials, or generation engine. Changes to the avatar stay in memory for the current visit and do not write to workspace files.

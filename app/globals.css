@@ -53,9 +53,10 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .app-header { position: relative; height: 146px; min-height: 146px; padding-top: 14px; margin: 0 20px; text-align: center; }
 .brand { display: flex; align-items: center; flex-direction: column; gap: 2px; margin: 0 auto; padding: 0; }
 .brand-name { font-size: 16px; font-weight: 600; letter-spacing: -.4px; }
-.mascot { width: 58px; height: 58px; position: relative; }
-.mascot::before { content: ""; position: absolute; top: 15%; left: 12%; width: 76%; height: 76%; border-radius: 50%; background: var(--mascot-bg); }
-.mascot img { position: relative; width: 58px; height: 58px; object-fit: contain; }
+.quirqy-avatar { width: 64px; height: 64px; display: grid; place-items: center; padding: 0; border-radius: 22px; }
+.quirqy-avatar:hover, .quirqy-avatar:focus-visible { background: var(--subtle); }
+.quirqy-avatar > svg { display: block; width: 64px; height: 64px; }
+.brand-name { padding: 0 8px; border-radius: 8px; }
 .round-button { width: 44px; height: 44px; padding: 0; background: var(--card); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .round-button:hover { background: var(--neutral); }
 .header-left { position: absolute; top: 16px; left: 0; }
@@ -318,3 +319,7 @@ progress::-moz-progress-bar { background: var(--progress-fill); border-radius: 8
   .preview-footer kbd, .preview-footer > span:last-child { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .typing-message i { animation: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .quirqy-avatar, .quirqy-avatar * { animation: none !important; transition: none !important; }
+}
