@@ -1,31 +1,26 @@
 {
   "type": "conversation",
-  "title": "A workspace you can shape on disk.",
-  "subtitle": "Saved project brief · editable in your text editor",
+  "title": "A little room for your day.",
+  "subtitle": "Your workspace, with quirqy.",
+  "demoReplies": "Chat/replies.json",
   "messages": [
     {
-      "role": "user",
-      "content": "Build an app that looks like OpenMuse in Next.js. Make it read-only: top-level folders appear in the dock, and clicking an item loads its file or JSON response directly from the filesystem."
-    },
-    {
       "role": "assistant",
-      "content": "The filesystem defines the experience. Folders organize it, documents explain it, and optional JSON shapes give conversations and collections their own presentation. Navigation is interactive; editing happens in your editor.",
+      "content": "Hey, I’m quirqy. Your files are right here whenever you need them. What would you like to explore?",
       "links": [
-        { "label": "Read the design notes", "path": "Files/Notes/Design.md" },
-        { "label": "Explore the folder structure", "path": "Files" }
+        {
+          "label": "Open the welcome guide",
+          "path": "Files/Welcome.md"
+        }
       ]
     },
     {
       "role": "user",
-      "content": "I want to choose the complete stack and connect my own API when I decide I need one."
+      "content": "Can you show me around?"
     },
     {
       "role": "assistant",
-      "content": "This version reads local files with Next.js and Node.js. Its content needs no model key, hosted database, or cloud service. An external process can write files into the workspace, and this interface will show the result.",
-      "links": [
-        { "label": "View a saved response", "path": "Chat/Examples/files-as-responses.json" },
-        { "label": "See workspace ideas", "path": "Ideas/index.json" }
-      ]
+      "content": "Of course. I can show you a few sample replies, help you find a file, or walk through this workspace. Try a prompt below, or ask in your own words."
     }
   ]
 }

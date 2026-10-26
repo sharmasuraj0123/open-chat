@@ -1,0 +1,127 @@
+{
+  "type": "demo-replies",
+  "suggestions": [
+    {
+      "label": "Find a file",
+      "prompt": "Can you help me find a file?"
+    },
+    {
+      "label": "Show me around",
+      "prompt": "Show me around this workspace."
+    },
+    {
+      "label": "How does this work?",
+      "prompt": "How does this work?"
+    }
+  ],
+  "rules": [
+    {
+      "keywords": [
+        "file",
+        "files",
+        "document",
+        "documents",
+        "notes",
+        "guide"
+      ],
+      "content": "Here are a couple of useful places to start. Open a file below and I’ll keep our conversation right here behind the preview.",
+      "links": [
+        {
+          "label": "Welcome guide",
+          "path": "Files/Welcome.md"
+        },
+        {
+          "label": "Design notes",
+          "path": "Files/Notes/Design.md"
+        },
+        {
+          "label": "Workspace data",
+          "path": "Files/workspace.json"
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "around",
+        "workspace",
+        "tour",
+        "explore"
+      ],
+      "content": "Think of the dock as a set of places for your day. Chat is where we talk, Activity holds saved progress, Ideas keeps possibilities together, Goals tracks the bigger picture, and Files is your library. Every place comes from a folder on disk.",
+      "links": [
+        {
+          "label": "Explore your files",
+          "path": "Files"
+        },
+        {
+          "label": "See saved ideas",
+          "path": "Ideas/index.json"
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "how",
+        "work",
+        "works",
+        "api",
+        "model",
+        "engine"
+      ],
+      "content": "This is a sample conversation: my replies are selected from Chat/replies.json, with no model or external API. Your messages stay in this browser tab. The workspace files remain the source of truth, and opening a document doesn’t change them.",
+      "links": [
+        {
+          "label": "Inspect sample replies",
+          "path": "Chat/replies.json"
+        },
+        {
+          "label": "Read the project guide",
+          "path": "Files/Welcome.md"
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "hello",
+        "hi",
+        "hey"
+      ],
+      "content": "Hey! I’m quirqy. Want to find a file, explore the workspace, or see how things fit together?"
+    },
+    {
+      "keywords": [
+        "thanks",
+        "thank you"
+      ],
+      "content": "You’re welcome. I’m here whenever you want to explore something else."
+    },
+    {
+      "keywords": [
+        "goal",
+        "goals",
+        "plan",
+        "plans"
+      ],
+      "content": "You can keep the bigger picture in Goals and your next steps in Activity. These are saved examples you can shape by editing their files.",
+      "links": [
+        {
+          "label": "Open goals",
+          "path": "Goals/index.json"
+        },
+        {
+          "label": "Open activity",
+          "path": "Activity/index.json"
+        }
+      ]
+    }
+  ],
+  "fallback": {
+    "content": "I’m using sample replies for now. Try asking me to find a file, show you around, or explain how this workspace works. You can change what I say by editing Chat/replies.json.",
+    "links": [
+      {
+        "label": "Open the welcome guide",
+        "path": "Files/Welcome.md"
+      }
+    ]
+  }
+}

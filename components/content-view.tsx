@@ -47,11 +47,11 @@ function JsonNode({ value, name, depth = 0 }: { value: unknown; name?: string; d
   </details>;
 }
 
-function isConversation(data: unknown): data is ObjectValue & { messages: ObjectValue[] } {
+export function isConversation(data: unknown): data is ObjectValue & { messages: ObjectValue[] } {
   return object(data) && data.type === "conversation" && Array.isArray(data.messages) && data.messages.every(message => object(message) && typeof message.content === "string" && ["user", "assistant", "system"].includes(string(message.role)));
 }
 
-function Conversation({ data, filePath, navigate }: { data: ObjectValue & { messages: ObjectValue[] }; filePath: string; navigate: Navigate }) {
+function Conversation({ data, filePath, navigate, demo }: { data: ObjectValue & { messages: ObjectValue[] }; filePath: string; navigate: Navigate; demo?: boolean }) {
   return <div className="conversation">
     <div className="conversation-intro"><span className="eyebrow">A LITTLE ROOM FOR YOUR FILES</span><h1>{string(data.title) || "Conversation"}</h1>{string(data.subtitle) && <p>{string(data.subtitle)}</p>}</div>
     <div className="messages">{data.messages.map((message, index) => <article key={index} className={`message ${string(message.role)}`}>
@@ -61,7 +61,7 @@ function Conversation({ data, filePath, navigate }: { data: ObjectValue & { mess
       </div>
       {message.role === "user" && string(message.time) && <span className="message-time">{string(message.time)}</span>}
     </article>)}</div>
-    <div className="conversation-end"><LockKeyhole size={12} />Saved conversation · read from this file</div>
+    <div className="conversation-end"><LockKeyhole size={12} />{demo ? "Sample conversation · files stay unchanged" : "Saved conversation · read from this file"}</div>
   </div>;
 }
 
@@ -88,14 +88,14 @@ function ImagePreview({ src, name }: { src: string; name: string }) {
   return failed ? <div className="empty-state"><FileText /><h2>Preview unavailable</h2><p>The file may have changed or may not contain a supported image.</p></div> : <figure className="image-preview"><img src={src} alt={name} onError={() => setFailed(true)} /><figcaption>{name}</figcaption></figure>;
 }
 
-export function FileContent({ file, revision, navigate }: { file: FileView; revision: string; navigate: Navigate }) {
+export function FileContent({ file, revision, navigate, demo = false, extraMessages = [] }: { file: FileView; revision: string; navigate: Navigate; demo?: boolean; extraMessages?: ObjectValue[] }) {
   const [source, setSource] = useState(false);
   const canReadSource = typeof file.content === "string";
   const src = `/api/file?path=${encodeURIComponent(file.path)}&v=${encodeURIComponent(revision)}`;
   let content: React.ReactNode;
   if (file.error && !canReadSource) content = <div className="empty-state"><FileText /><h2>File on disk</h2><p>{file.error}</p><code>{file.path}</code></div>;
   else if (source && canReadSource) content = <pre className="source-code"><code>{file.content}</code></pre>;
-  else if (file.format === "json" && isConversation(file.data)) content = <Conversation data={file.data} filePath={file.path} navigate={navigate} />;
+  else if (file.format === "json" && isConversation(file.data)) content = <Conversation data={{ ...file.data, messages: [...file.data.messages, ...extraMessages] }} filePath={file.path} navigate={navigate} demo={demo} />;
   else if (file.format === "json" && object(file.data) && file.data.type === "collection" && Array.isArray(file.data.items) && file.data.items.every(item => object(item) && typeof item.title === "string")) content = <Collection data={file.data as ObjectValue & { items: ObjectValue[] }} navigate={navigate} />;
   else if (file.format === "json" && !file.error) content = <div className="document-card"><JsonNode value={file.data} /></div>;
   else if (file.format === "markdown") content = <article className="document-card"><Markdown content={file.content || ""} filePath={file.path} navigate={navigate} /></article>;

@@ -2,6 +2,8 @@
 
 A little room for your files.
 
+Read the [design notes](Notes/Design.md) or inspect the [workspace data](workspace.json) without leaving this preview.
+
 open-chat displays the contents of a local directory. The interface follows OpenMuse's centered layout, soft cards, and floating dock. Content stays in files you control.
 
 ## Find your way around
@@ -32,4 +34,4 @@ You can browse these examples:
 
 ## Bring your own tools
 
-The app reads local files; it does not send prompts or write content. Your own API, script, or editor can create and update the files it displays. No model key, database, or cloud service is required.
+The app reads local files and does not write workspace content. The sample Chat view accepts messages and selects canned replies from `Chat/replies.json`; new demo turns stay in this browser tab. Your own API, script, or editor can create and update the files it displays. No model key, database, or cloud service is required.
