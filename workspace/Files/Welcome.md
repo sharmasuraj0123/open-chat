@@ -1,8 +1,8 @@
-# Welcome to Muse Mirror
+# Welcome to open-chat
 
 A little room for your files.
 
-Muse Mirror displays the contents of a local directory. The interface follows OpenMuse's centered layout, soft cards, and floating dock. Content stays in files you control.
+open-chat displays the contents of a local directory. The interface follows OpenMuse's centered layout, soft cards, and floating dock. Content stays in files you control.
 
 ## Find your way around
 

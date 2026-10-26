@@ -55,7 +55,7 @@ function Conversation({ data, filePath, navigate }: { data: ObjectValue & { mess
   return <div className="conversation">
     <div className="conversation-intro"><span className="eyebrow">A LITTLE ROOM FOR YOUR FILES</span><h1>{string(data.title) || "Conversation"}</h1>{string(data.subtitle) && <p>{string(data.subtitle)}</p>}</div>
     <div className="messages">{data.messages.map((message, index) => <article key={index} className={`message ${string(message.role)}`}>
-      {message.role !== "user" && <span className="message-author">{message.role === "system" ? "Note" : "Muse"}{string(message.time) && <span> · {string(message.time)}</span>}</span>}
+      {message.role !== "user" && <span className="message-author">{message.role === "system" ? "Note" : "quirqy"}{string(message.time) && <span> · {string(message.time)}</span>}</span>}
       <div className="bubble"><Markdown content={string(message.content)} filePath={filePath} navigate={navigate} />
         {Array.isArray(message.links) && <div className="message-links">{message.links.filter(object).map((link, i) => typeof link.path === "string" && <button key={i} onClick={() => navigate(string(link.path))}><FileText size={15} /><span>{string(link.label) || string(link.path)}</span><ArrowUpRight size={14} /></button>)}</div>}
       </div>

@@ -1,51 +1,107 @@
-# Muse Mirror
+# open-chat
 
-A Next.js app that follows OpenMuse's visual design and mirrors a local directory. Top-level folders become dock items. Browse nested folders, open documents, and read conversations or collections stored as JSON.
+**open-chat** is a read-only Next.js workspace with **quirqy**, the assistant identity shown in the header and beside saved assistant messages. It follows OpenMuse's visual design while taking its content directly from a local directory.
 
-The filesystem is the source of truth. The interface reads content; you make changes in your editor or with scripts and APIs you control. No model API key, database, hosted agent runtime, or cloud service is required.
+Folders provide navigation. Files provide documents, data, cards, and saved conversations. Change those files with your editor, scripts, or your own API, and the open app reflects the changes. No model API key, database, hosted agent runtime, or cloud service is required.
 
 ## Run locally
 
-From this directory:
+Use Node.js 22 or newer:
 
 ```bash
+git clone https://github.com/sharmasuraj0123/open-chat.git
+cd open-chat
 npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:3210](http://127.0.0.1:3210). The local server binds to `127.0.0.1`.
+Open [http://127.0.0.1:3210](http://127.0.0.1:3210). The server binds to `127.0.0.1`. The included launchers are `./start-local.ps1` in PowerShell and `sh start-local.sh` in a shell.
 
-You can also use the included launcher: `./start-local.ps1` in PowerShell or `sh start-local.sh` in a shell.
+For a production build running locally:
 
-The default content directory is `./workspace`, which includes five example folders and a home conversation. To mirror another directory, create `.env.local` in the app directory:
+```bash
+npm run build
+npm start
+```
+
+The default content directory is `./workspace`. To mirror another directory, create `.env.local` in the app directory and restart the server:
 
 ```dotenv
 MIRROR_ROOT=/absolute/path/to/your/content
 ```
 
-Use a directory whose contents you intend to browse. Restart the server after changing `MIRROR_ROOT`.
+On Windows, forward slashes work too, for example `MIRROR_ROOT=D:/my-content`. Relative paths are resolved from the app directory. Run the app as a Node service with access to that directory; the browser itself does not read your disk directly.
 
-## How it works
+## Views and navigation
 
-- Top-level folders determine the dock; folder names are read from disk.
-- Folder navigation preserves the real directory hierarchy.
-- Opening a file reads its saved contents directly through the local server.
-- The first visit opens the root `index.json` automatically when present.
-- Opening a folder browses its files. If it contains `index.json`, an “Open …” card opens that richer conversation or collection view.
-- The active browser checks for disk changes every 1.5 seconds.
-- Content endpoints are read-only `GET` routes. The app has no content-write endpoint.
+### Folder view and dock
 
-Names starting with `.` and `node_modules` are excluded from browsing and cannot be opened through the content endpoints. Ordinary folders such as `dist` remain visible. The backend enforces the configured root boundary for file reads: internal symlinks work, while symlinks that escape the root or resolve to hidden paths are excluded.
+Every visible top-level folder becomes an item in the floating dock. Open one to browse its files and nested folders. Breadcrumbs and the workspace menu let you move through the real directory hierarchy. The search field filters filenames in the current folder; it is not a chat composer or a recursive content search.
 
-Text previews are limited to 2 MB, image and PDF previews to 20 MB, and directory listings to 2,000 visible entries. The app reports an explicit error when a limit is exceeded.
+On a first visit without a deep link, a root `index.json` opens automatically when present. Opening a folder displays its file list. If that folder contains `index.json`, an Open card lets you select that saved view. An `index.json` filename alone does not determine the presentation: its JSON structure does.
 
-Try editing `workspace/index.json` and saving it. Then add a folder directly inside `workspace` to add another dock item. To have your own API produce content, write its results into this directory; the viewer will pick them up.
+### Saved conversation view
 
-## Optional JSON presentations
+A JSON object with `"type": "conversation"` and a valid `messages` array becomes a conversation. User messages appear as user bubbles, assistant messages are labeled **quirqy**, and system messages are labeled Note. Message text supports Markdown; optional file links open other locations in the workspace.
 
-Ordinary JSON works without a schema. It is shown as inspectable data, with its raw source available. These two optional shapes add conversation and collection presentations. Link paths are relative to the workspace root, with `/` between folder names.
+These messages are saved records, not generated replies. Opening a conversation does not run an agent or call a model.
 
-### A saved conversation
+### Collection view
+
+A JSON object with `"type": "collection"` and an `items` array becomes a list of cards. Every item needs a string `title`. Optional descriptions, categories, status labels, metadata, progress values, and paths enrich each card. A card with a path opens that file or folder. Status and progress are displayed values from disk, not evidence of background execution.
+
+### JSON inspector
+
+Other valid JSON is shown as expandable data, including nested objects, arrays, strings, numbers, booleans, and null. Objects that do not match the conversation or collection shape also fall back to the inspector. For responsiveness, the tree displays up to 100 entries per node and eight nested levels; Source retains the full loaded text.
+
+### Document, text, and source views
+
+Markdown opens as a formatted document. Recognized text and code files open as plain source. The Source/Preview toggle shows the original loaded text for JSON and Markdown as well. Malformed JSON stays readable as source with a parsing notice.
+
+HTML and SVG files are displayed as text. They are not executed or embedded as active pages. Markdown raw HTML is skipped, and inline Markdown images are represented by their alt text; open a supported image file directly for an image preview.
+
+### Image and PDF views
+
+Supported image files have an image preview. PDFs open in an embedded browser viewer with a link to open the document in a new tab; PDF display depends on browser support. The binary endpoint checks file signatures as well as extensions.
+
+### The example workspace
+
+The included dock folders illustrate different uses of the same renderers:
+
+- **Chat:** saved conversations and linked responses.
+- **Activity:** saved plans, progress, and reading notes.
+- **Ideas:** collections of suggestions and supporting files.
+- **Goals:** saved milestones, progress cards, and checklists.
+- **Files:** a collection linking to Markdown, ordinary JSON, CSV, plain text, and nested notes.
+
+These folder names are examples, not separate backend applications. You can rename them or add your own folders. The menu browses files, and the information panel explains the current workspace and its read-only access.
+
+## Supported content types
+
+- **Structured JSON:** `.json`; optional conversation and collection shapes, or the generic inspector. The file must contain valid JSON for a structured preview.
+- **Markdown:** `.md`, `.markdown`, `.mdx`; headings, lists, links, code blocks, GitHub-style tables, and read-only task checkboxes through `react-markdown` and `remark-gfm`. MDX is treated as Markdown; JSX and imports are not executed.
+- **Images:** `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp` with matching file signatures.
+- **Documents:** `.pdf` with a matching PDF signature. There is no Office-document reader.
+- **Plain text and code:** the recognized UTF-8 extensions below. CSV/TSV are shown as text, not spreadsheet tables; YAML, TOML, XML, and JSONC are shown as text, not parsed into structured views. Code is displayed, not executed, and has no syntax highlighting.
+
+```text
+txt text csv tsv log js jsx ts tsx mjs cjs
+jsonc css scss sass less html htm xml svg yaml
+yml toml ini conf config sql py rb rs go java
+kt kts swift sh bash zsh fish ps1 bat c cpp
+cc h hpp cs vue svelte astro prisma graphql gql
+proto diff patch r rmd tex dockerfile lock
+```
+
+The exact filenames `Dockerfile`, `Makefile`, `LICENSE`, `README`, and `CHANGELOG` are also recognized as text, case-insensitively. Unknown extensions, other binary files, and non-UTF-8 text get a file-information view explaining that no preview is available. Audio, video, Office documents, executable widgets, and arbitrary HTML applications do not have dedicated viewers.
+
+Text previews are limited to 2 MB, image/PDF previews to 20 MB, and directory listings to 2,000 visible entries. Limits produce explicit messages rather than silently truncating file contents or listings.
+
+## JSON content examples
+
+Presentation link paths are relative to the workspace root, using `/` between folder names. Markdown links instead resolve relative to their containing document; a leading `/` resolves from the workspace root.
+
+### Saved conversation
 
 ```json
 {
@@ -59,38 +115,58 @@ Ordinary JSON works without a schema. It is shown as inspectable data, with its 
     },
     {
       "role": "assistant",
-      "content": "It lives in the Notes folder.",
-      "links": [{ "label": "Read the brief", "path": "Notes/brief.md" }]
+      "content": "The brief is in the Files folder.",
+      "time": "10:30 AM",
+      "links": [{ "label": "Read the brief", "path": "Files/Notes/Design.md" }]
     }
   ]
 }
 ```
 
-Message roles are `user`, `assistant`, or `system`. A message may also have a `time` string. Messages are saved content; opening the file does not call a model.
+Each message needs a string `content` and a `role` of `user`, `assistant`, or `system`. `title`, `subtitle`, `time`, and message `links` are optional. The visible assistant name is quirqy; no model name or provider is inferred from the message.
 
-### A collection
+### Collection
 
 ```json
 {
   "type": "collection",
   "title": "Research",
-  "subtitle": "A few useful documents",
+  "subtitle": "Useful documents",
   "items": [
     {
       "title": "Design brief",
       "description": "The current workspace direction.",
       "status": "Saved",
       "category": "Notes",
-      "path": "Notes/brief.md",
+      "progress": 40,
+      "path": "Files/Notes/Design.md",
       "meta": "Markdown"
     }
   ]
 }
 ```
 
-Collection items require a `title`; the other illustrated properties are optional. An item can also include a numeric `progress` value for saved progress information. `path` may point to a file or a folder.
+Each item needs a string `title`; the other illustrated properties are optional. `path` may point to a file or folder. Numeric progress is displayed within 0-100. Unknown fields remain accessible through Source.
 
-The sample content also includes nested Markdown, ordinary JSON, CSV, and plain text. These files demonstrate navigation and rendering without imposing a storage format on your own content.
+## Is there a generation engine?
+
+**There is no content-generation or AI engine in open-chat.** quirqy is the identity used to present saved assistant messages; it does not autonomously reason, execute tasks, or create responses. There are no LLM calls, agent loops, embeddings, or CopilotKit Intelligence integration.
+
+The app does have a deterministic rendering pipeline:
+
+1. Next.js Node route handlers read files with `node:fs` from `MIRROR_ROOT`.
+2. `lib/filesystem.ts` classifies files and parses `.json` with `JSON.parse`.
+3. React components choose the conversation, collection, inspector, document, text, or binary preview based on file type and the optional JSON shapes.
+4. `react-markdown` with `remark-gfm` renders Markdown. React and Next.js render the interface; none of these libraries generates the saved content.
+5. The active browser polls the read-only API every 1.5 seconds. Snapshot hashes and ETags detect changes and avoid resending an unchanged view. Polling pauses while the tab is hidden.
+
+To add generation later, run your own API, script, model, or agent separately and have it write files into the content directory. For example, a script can write a conversation JSON file, and open-chat will render it on the next refresh. That producer decides the model, credentials, storage format, and execution stack; it is not a mandatory dependency of this app.
+
+## Filesystem boundaries
+
+Content endpoints use read-only `GET` routes. The app has no content-write endpoint. Names starting with `.` and `node_modules` are excluded. Paths containing colons or backslashes are not exposed. Ordinary folders such as `dist` remain visible.
+
+The backend enforces the configured root boundary: internal symlinks work, while links that escape the root or resolve to hidden paths are excluded. If a saved view cannot be refreshed, the UI reports the error and labels any retained view as the last saved view.
 
 ## Development checks
 
@@ -100,8 +176,8 @@ npm test
 npm run build
 ```
 
-Verified locally: TypeScript checks, all 12 filesystem/API tests, and the Next.js production build pass. The development page and example-workspace API return HTTP 200. Laptop layouts use a 960px maximum width; mobile retains the compact layout. Exact visual parity with upstream has not been independently verified. Production builds currently report dynamic-filesystem tracing warnings because MIRROR_ROOT is resolved at runtime; run this app as a local Node service with access to your content directory.
+The app includes 12 filesystem/API tests. Laptop layouts use a 960px maximum width; mobile retains the compact layout. Production builds currently report dynamic-filesystem tracing warnings because `MIRROR_ROOT` is resolved at runtime. Exact visual parity with upstream has not been independently verified.
 
 ## Visual attribution
 
-The layout and visual styles are ported from [CopilotKit/OpenMuse](https://github.com/CopilotKit/OpenMuse), especially `apps/mobile/App.tsx` and `apps/mobile/src/ui.tsx`, into Next.js. The upstream MIT notice is retained in `OPENMUSE-LICENSE`. This viewer uses its own filesystem data layer.
+The layout and visual styles are ported from [CopilotKit/OpenMuse](https://github.com/CopilotKit/OpenMuse), especially `apps/mobile/App.tsx` and `apps/mobile/src/ui.tsx`, into Next.js. The upstream MIT notice is retained in `OPENMUSE-LICENSE`. open-chat uses its own filesystem data layer and the assistant name quirqy.

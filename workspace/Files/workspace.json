@@ -1,5 +1,5 @@
 {
-  "name": "Muse Mirror sample workspace",
+  "name": "open-chat sample workspace",
   "purpose": "A read-only view of local files",
   "framework": "Next.js",
   "sourceOfTruth": "filesystem",

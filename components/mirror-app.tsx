@@ -150,7 +150,7 @@ export function MirrorApp() {
   return <div className="app-shell">
     <header className="app-header">
       <button className="round-button header-left" aria-label="Browse workspace" onClick={() => setPanel("files")}><Menu size={20} strokeWidth={1.8} /></button>
-      <button className="brand" onClick={() => navigate("")} aria-label="Open workspace home"><Mascot /><span className="brand-name">Muse Mirror</span></button>
+      <button className="brand" onClick={() => navigate("")} aria-label="Open workspace home"><Mascot /><span className="brand-name">quirqy</span></button>
       <span className={`connection ${error ? "offline" : ""}`}><i />{error ? "Connection needs attention" : "Your files, in sync"}</span>
       <button className="round-button header-right" aria-label="About this workspace" onClick={() => setPanel("about")}><CircleHelp size={20} strokeWidth={1.8} /></button>
     </header>
