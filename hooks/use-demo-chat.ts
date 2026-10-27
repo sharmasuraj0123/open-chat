@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DEMO_STORAGE_PREFIX, MAX_DEMO_MESSAGES, MAX_MESSAGE_LENGTH, parseDemoReplies, restoreDemoSession, sampleReply, type DemoMessage } from "@/lib/demo-chat";
 import { useWorkspace } from "./use-workspace";
 
-export function useDemoChat(conversationPath: string | undefined, repliesPath: string | undefined) {
+export function useDemoChat(conversationPath: string | undefined, repliesPath: string | undefined, rootId = "default") {
+  const storageKey = DEMO_STORAGE_PREFIX + rootId + ":" + conversationPath;
   const { snapshot, error: readError, refresh } = useWorkspace(repliesPath);
   const config = parseDemoReplies(snapshot?.file?.data);
   const error = readError || (snapshot && !config ? "The sample reply file is not valid. Check its demo-replies structure." : "");
@@ -17,15 +18,15 @@ export function useDemoChat(conversationPath: string | undefined, repliesPath: s
     stop();
     if (conversationPath === undefined) return;
     let restored = { messages: [] as DemoMessage[], draft: "" };
-    try { restored = restoreDemoSession(JSON.parse(sessionStorage.getItem(DEMO_STORAGE_PREFIX + conversationPath) || "null")); } catch { /* Session storage may be blocked or contain invalid data. */ }
+    try { restored = restoreDemoSession(JSON.parse(sessionStorage.getItem(storageKey) || "null")); } catch { /* Session storage may be blocked or contain invalid data. */ }
     setSession({ path: conversationPath, ...restored });
     return () => { clearTimeout(timer.current); sending.current = false; };
-  }, [conversationPath, stop]);
+  }, [conversationPath, stop, storageKey]);
 
   useEffect(() => {
     if (conversationPath === undefined || session.path !== conversationPath) return;
-    try { sessionStorage.setItem(DEMO_STORAGE_PREFIX + conversationPath, JSON.stringify({ version: 1, messages: session.messages, draft: session.draft })); } catch { /* Keep the demo usable without storage. */ }
-  }, [session, conversationPath]);
+    try { sessionStorage.setItem(storageKey, JSON.stringify({ version: 1, messages: session.messages, draft: session.draft })); } catch { /* Keep the demo usable without storage. */ }
+  }, [session, conversationPath, storageKey]);
 
   const ready = conversationPath !== undefined && session.path === conversationPath;
   const messages = ready ? session.messages : [];

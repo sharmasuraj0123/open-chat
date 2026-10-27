@@ -19,6 +19,7 @@ export interface FileView extends Entry {
 
 export interface WorkspaceSnapshot {
   rootName: string;
+  rootId: string;
   roots: Entry[];
   directory: {
     path: string;

@@ -78,6 +78,14 @@ async function workspaceRoot(configuredRoot?: string): Promise<string> {
   return root;
 }
 
+/** Resolve a selectable directory using the same traversal and symlink boundary as file reads. */
+export async function resolveObservationDirectory(relative: string, configuredRoot?: string): Promise<string> {
+  const root = await workspaceRoot(configuredRoot);
+  const resolved = await resolveInside(root, relativePath(relative));
+  if (!(await stat(resolved)).isDirectory()) throw new MirrorError("Choose a folder, not a file.");
+  return resolved;
+}
+
 async function resolveInside(root: string, relative: string): Promise<string> {
   const resolved = await realpath(path.join(root, relative));
   assertContained(root, resolved);
@@ -229,6 +237,7 @@ export async function loadWorkspace(requestedPath = "", configuredRoot?: string)
     const rootName = path.basename(root) || "Workspace";
     const snapshot: Omit<WorkspaceSnapshot, "revision"> = {
       rootName,
+      rootId: createHash("sha256").update(root).digest("hex"),
       roots: rootEntries.filter((entry) => entry.kind === "directory"),
       directory: {
         path: directoryPath,

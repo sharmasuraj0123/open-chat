@@ -14,6 +14,7 @@ import { ChatComposer } from "./chat-composer";
 import { useDemoChat } from "@/hooks/use-demo-chat";
 import { ThemePicker } from "./theme-picker";
 import { QuirqyAvatar } from "./quirqy-avatar";
+import { RootPicker } from "./root-picker";
 
 const icons = new Map<string, LucideIcon>([
   ["chat", MessageCircle], ["activity", PanelsTopLeft], ["ideas", Lightbulb],
@@ -44,6 +45,7 @@ function EntryRows({ entries, navigate, openFile, selected }: { entries: Entry[]
 
 export function MirrorApp() {
   const [path, setPath] = useState("");
+  const [choosingRoot, setChoosingRoot] = useState(false);
   const [previewPaths, setPreviewPaths] = useState<string[]>([]);
   const pendingChatSection = useRef<string | undefined>(undefined);
   const [ready, setReady] = useState(false);
@@ -62,7 +64,7 @@ export function MirrorApp() {
   const conversation = snapshot?.file?.format === "json" && isConversation(snapshot.file.data) ? snapshot.file.data : undefined;
   const repliesPath = typeof conversation?.demoReplies === "string" ? conversation.demoReplies : undefined;
   const chatEnabled = !!conversation && !!repliesPath;
-  const chat = useDemoChat(chatEnabled ? snapshot?.file?.path : undefined, repliesPath);
+  const chat = useDemoChat(chatEnabled ? snapshot?.file?.path : undefined, repliesPath, snapshot?.rootId);
   const closePreview = useCallback(() => setPreviewPaths([]), []);
   const openFile = useCallback((next: string) => { setPanel(null); setPreviewPaths(current => current.at(-1) === next ? current : [...current, next]); }, []);
   const roots = [...(result?.snapshot.roots || [])].sort((a, b) => {
@@ -175,7 +177,7 @@ export function MirrorApp() {
   return <div className="app-shell">
     <header className="app-header">
       <button className="round-button header-left" aria-label="Browse workspace" onClick={() => setPanel("files")}><Menu size={20} strokeWidth={1.8} /></button>
-      <div className="brand"><QuirqyAvatar pending={chat.pending} drafting={!!chat.draft.trim()} replied={chat.messages.at(-1)?.role === "assistant"} /><button className="brand-name" onClick={() => navigate("")} aria-label="Open workspace home">quirqy</button></div>
+      <div className="brand"><QuirqyAvatar pending={chat.pending} drafting={!!chat.draft.trim()} replied={chat.messages.at(-1)?.role === "assistant"} /><button className="brand-name" onClick={() => setChoosingRoot(true)} aria-label="Choose observation root" title="Change observed folder">quirqy</button></div>
       <span className={`connection ${error ? "offline" : ""}`}><i />{error ? "Connection needs attention" : "Your files, in sync"}</span>
       <div className="header-actions header-right"><ThemePicker /><button className="round-button" aria-label="About this workspace" onClick={() => setPanel("about")}><CircleHelp size={20} strokeWidth={1.8} /></button></div>
     </header>
@@ -212,6 +214,7 @@ export function MirrorApp() {
         <p className="about-footnote">Visual design adapted from OpenMuse. This app reads local files using Next.js, without an agent runtime or account.</p>
       </>}</div></div>
     </dialog>
+    {choosingRoot && <RootPicker onClose={() => setChoosingRoot(false)} />}
     {!!previewPaths.length && <FileOverlay path={previewPaths[previewPaths.length - 1]} canGoBack={previewPaths.length > 1} onBack={() => setPreviewPaths(current => current.slice(0, -1))} onClose={closePreview} onOpen={openFile} onNavigate={navigate} />}
   </div>;
 }

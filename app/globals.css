@@ -323,3 +323,11 @@ progress::-moz-progress-bar { background: var(--progress-fill); border-radius: 8
 @media (prefers-reduced-motion: reduce) {
   .quirqy-avatar, .quirqy-avatar * { animation: none !important; transition: none !important; }
 }
+
+.root-choice { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--subtle); border-radius: 16px; margin-bottom: 12px; }
+.root-choice > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.root-choice p { color: var(--muted); font-size: 12px; margin: 3px 0 0; }
+.observe-button { width: 100%; background: var(--text); color: var(--canvas); border-radius: 16px; padding: 13px; margin-top: 18px; font-weight: 600; }
+.observe-button:disabled { opacity: .6; }
+.root-picker .sheet-inner { max-height: 85dvh; }
+.root-picker .entry-row { flex-shrink: 0; }
