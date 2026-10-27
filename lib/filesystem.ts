@@ -33,12 +33,12 @@ export class MirrorError extends Error {
   }
 }
 
-function isVisibleName(name: string): boolean {
+export function isVisibleName(name: string): boolean {
   return !name.startsWith(".") && !OMITTED_NAMES.has(name) && !name.includes("\\") && !name.includes(":");
 }
 
 /** Do not normalize traversal away: a rejected path must stay rejected. */
-function relativePath(requestedPath: string): string {
+export function relativePath(requestedPath: string): string {
   if (
     requestedPath.includes("\0") ||
     requestedPath.includes("\\") ||
@@ -127,10 +127,13 @@ async function listDirectory(root: string, relative: string): Promise<Entry[]> {
       throw error;
     }
   }));
-  return entries.filter((entry): entry is Entry => entry !== null).sort((left, right) => {
-    if (left.kind !== right.kind) return left.kind === "directory" ? -1 : 1;
-    return left.name.localeCompare(right.name, "en", { numeric: true, sensitivity: "base" }) || left.name.localeCompare(right.name, "en");
-  });
+  return entries.filter((entry): entry is Entry => entry !== null).sort(compareEntries);
+}
+
+/** Folders first, then natural name order. */
+export function compareEntries(left: Entry, right: Entry): number {
+  if (left.kind !== right.kind) return left.kind === "directory" ? -1 : 1;
+  return left.name.localeCompare(right.name, "en", { numeric: true, sensitivity: "base" }) || left.name.localeCompare(right.name, "en");
 }
 
 /** Bound reads even if another process grows a file while it is being read. */
@@ -158,7 +161,7 @@ async function readLimitedBytes(resolved: string, limit: number): Promise<Buffer
   }
 }
 
-function fileFormat(entry: Entry): FileView["format"] {
+export function fileFormat(entry: Entry): FileView["format"] {
   if (["jsonl", "ndjson"].includes(entry.extension)) return "jsonl";
   if (entry.extension === "url") return "url";
   if (entry.extension === "json") return "json";
@@ -170,7 +173,11 @@ function fileFormat(entry: Entry): FileView["format"] {
 }
 
 async function loadFile(root: string, relative: string, metadata: Stats): Promise<FileView> {
-  const entry = makeEntry(relative, metadata);
+  return buildFileView(makeEntry(relative, metadata), async limit => readLimitedBytes(await resolveInside(root, relative), limit));
+}
+
+/** Classify and decode one file; `read` returns at most `limit` bytes or throws a 413 MirrorError. */
+export async function buildFileView(entry: Entry, read: (limit: number) => Promise<Buffer>): Promise<FileView> {
   const format = fileFormat(entry);
   const view: FileView = { ...entry, kind: "file", format };
   if (format === "unsupported") {
@@ -184,7 +191,7 @@ async function loadFile(root: string, relative: string, metadata: Stats): Promis
   if (entry.size > MAX_TEXT_BYTES) return { ...view, error: "This file is larger than the 2 MB text preview limit." };
   let bytes: Buffer;
   try {
-    bytes = await readLimitedBytes(await resolveInside(root, relative), MAX_TEXT_BYTES);
+    bytes = await read(MAX_TEXT_BYTES);
   } catch (error) {
     if (error instanceof MirrorError && error.status === 413) {
       return { ...view, error: "This file is larger than the 2 MB text preview limit." };
@@ -248,15 +255,23 @@ export async function loadWorkspace(requestedPath = "", configuredRoot?: string)
       },
       ...(isFile ? { file: await loadFile(root, relative, metadata) } : {}),
     };
-    // Content participates in the digest; same-size or preserved-mtime edits refresh.
-    const revision = createHash("sha256").update(JSON.stringify(snapshot)).digest("hex");
-    return { ...snapshot, revision };
+    return withRevision(snapshot);
   } catch (error) {
     throw safeMirrorError(error);
   }
 }
 
-function matchesMime(bytes: Buffer, contentType: string): boolean {
+/** Content participates in the digest; same-size or preserved-mtime edits refresh. */
+export function withRevision(snapshot: Omit<WorkspaceSnapshot, "revision">): WorkspaceSnapshot {
+  return { ...snapshot, revision: createHash("sha256").update(JSON.stringify(snapshot)).digest("hex") };
+}
+
+/** The binary preview type for an extension, if it has one. */
+export function previewContentType(extension: string): string | undefined {
+  return IMAGE_MIME.get(extension) ?? (extension === "pdf" ? "application/pdf" : undefined);
+}
+
+export function matchesMime(bytes: Buffer, contentType: string): boolean {
   if (contentType === "image/png") return bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
   if (contentType === "image/jpeg") return bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
   if (contentType === "image/gif") return ["GIF87a", "GIF89a"].includes(bytes.subarray(0, 6).toString("ascii"));
@@ -272,7 +287,7 @@ export async function readPreview(requestedPath: string, configuredRoot?: string
     const root = await workspaceRoot(configuredRoot);
     const resolved = await resolveInside(root, relative);
     const extension = path.posix.extname(relative).slice(1).toLowerCase();
-    const contentType = IMAGE_MIME.get(extension) ?? (extension === "pdf" ? "application/pdf" : undefined);
+    const contentType = previewContentType(extension);
     if (!contentType) throw new MirrorError("Only supported images and PDF files have a binary preview.", 415);
     const bytes = await readLimitedBytes(resolved, MAX_PREVIEW_BYTES);
     if (!matchesMime(bytes, contentType)) throw new MirrorError("The file contents do not match this preview format.", 415);

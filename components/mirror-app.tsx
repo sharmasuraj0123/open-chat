@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft, ArrowUpRight, BookOpen, Check, ChevronRight, CircleHelp, File, FileCode2,
+  ArrowLeft, ArrowUpRight, BookOpen, Check, ChevronRight, CircleHelp, Cloud, File, FileCode2,
   FileImage, FileText, Folder, FolderOpen, House, Lightbulb, LockKeyhole,
   Menu, MessageCircle, PanelsTopLeft, RefreshCw, Search, Shapes, SquareCheck, X,
   type LucideIcon
@@ -12,6 +12,8 @@ import { FileContent, isConversation } from "./content-view";
 import { FileOverlay } from "./file-overlay";
 import { ChatComposer } from "./chat-composer";
 import { useDemoChat } from "@/hooks/use-demo-chat";
+import { useBackend } from "@/hooks/use-backend";
+import { chatLogPath } from "@/lib/chat-log";
 import { ThemePicker } from "./theme-picker";
 import { QuirqyAvatar } from "./quirqy-avatar";
 import { RootPicker } from "./root-picker";
@@ -64,8 +66,16 @@ export function MirrorApp() {
   const snapshot = result?.path === path ? result.snapshot : undefined;
   const conversation = snapshot?.file?.format === "json" && isConversation(snapshot.file.data) ? snapshot.file.data : undefined;
   const repliesPath = typeof conversation?.demoReplies === "string" ? conversation.demoReplies : undefined;
-  const chatEnabled = !!conversation && !!repliesPath;
-  const chat = useDemoChat(chatEnabled ? snapshot?.file?.path : undefined, repliesPath, snapshot?.rootId);
+  const backend = useBackend();
+  const hub = backend?.kind === "hub" ? backend : undefined;
+  const hubPlace = hub ? `${hub.target} on ${hub.host}` : "";
+  // On the hub every conversation takes new messages; on disk only the sample-reply demo does.
+  const chatEnabled = !!conversation && (!!repliesPath || !!hub);
+  const chat = useDemoChat(chatEnabled ? snapshot?.file?.path : undefined, repliesPath, snapshot?.rootId, hub ? {
+    savedTo: hubPlace,
+    blocked: hub.author ? undefined : hub.state === "offline" ? hub.error || "The hub is unreachable." : "Saving chats needs a spacehub sign-in: run spacehub auth login (or set SPACEHUB_TOKEN), then restart open-chat.",
+  } : undefined);
+  const chatLog = hub && snapshot?.file ? chatLogPath(snapshot.file.path)?.split("/").at(-1) : undefined;
   const closePreview = useCallback(() => setPreviewPaths([]), []);
   const openFile = useCallback((next: string) => { setPanel(null); setPreviewPaths(current => current.at(-1) === next ? current : [...current, next]); }, []);
   const roots = [...(result?.snapshot.roots || [])].sort((a, b) => {
@@ -179,7 +189,7 @@ export function MirrorApp() {
     <header className="app-header">
       <button className="round-button header-left" aria-label="Browse workspace" onClick={() => setPanel("files")}><Menu size={20} strokeWidth={1.8} /></button>
       <div className="brand"><QuirqyAvatar pending={chat.pending} drafting={!!chat.draft.trim()} replied={chat.messages.at(-1)?.role === "assistant"} /><button className="brand-name" onClick={() => setChoosingRoot(true)} aria-label="Choose observation root" title="Change observed folder">quirqy</button></div>
-      <span className={`connection ${error ? "offline" : ""}`}><i />{error ? "Connection needs attention" : "Your files, in sync"}</span>
+      <span className={`connection ${error || (hub && hub.state !== "live") ? "offline" : ""}`}><i />{error ? "Connection needs attention" : hub ? (hub.state === "live" ? `Live on ${hub.host}` : "Reconnecting to the hub") : "Your files, in sync"}</span>
       <div className="header-actions header-right"><ThemePicker /><button className="round-button" aria-label="About this workspace" onClick={() => setPanel("about")}><CircleHelp size={20} strokeWidth={1.8} /></button></div>
     </header>
 
@@ -187,8 +197,8 @@ export function MirrorApp() {
       {path && <nav className="breadcrumbs" aria-label="Breadcrumb"><button onClick={() => navigate("")} aria-label="Workspace root"><House size={13} /></button>{folderPath.split("/").filter(Boolean).map((part, i, all) => <span key={i}><ChevronRight size={12} /><button onClick={() => navigate(all.slice(0, i + 1).join("/"))}>{part}</button></span>)}</nav>}
       {error && <div className="notice warning" role="alert"><strong>{snapshot ? "Showing the last saved view." : "This location is unavailable."}</strong><p>{error}</p><button onClick={() => setRefresh(value => value + 1)}><RefreshCw size={13} /> Try again</button><button onClick={() => navigate(parentOf(path))}><ArrowLeft size={13} /> Back to folder</button></div>}
       {!snapshot && !error && <div className="loading-state"><RefreshCw className="spin" size={21} /><p>Opening your workspace…</p></div>}
-      {snapshot && (query ? <section><div className="section-heading"><h1>Find a file</h1><p>{filtered.length} {filtered.length === 1 ? "match" : "matches"} in {activeName.toLowerCase()}</p></div><EntryRows entries={filtered} navigate={navigate} openFile={openFile} />{!filtered.length && <div className="empty-state"><Search /><p>No files match “{query}”.</p></div>}</section> : snapshot.file ? <><FileContent key={snapshot.file.path} file={snapshot.file} revision={snapshot.revision} navigate={openFile} demo={chatEnabled} extraMessages={chatEnabled ? chat.messages : undefined} />{chatEnabled && chat.pending && <div className="typing-message" aria-hidden="true"><span>quirqy</span><div><i /><i /><i /></div></div>}</> : <section>
-        <div className="section-heading"><div className="between"><h1>{activeName}</h1><span className="chip"><LockKeyhole size={11} /> Read only</span></div><p>{folderPath ? "Everything here comes straight from this folder." : "A little room for everything you’re working on."}</p></div>
+      {snapshot && (query ? <section><div className="section-heading"><h1>Find a file</h1><p>{filtered.length} {filtered.length === 1 ? "match" : "matches"} in {activeName.toLowerCase()}</p></div><EntryRows entries={filtered} navigate={navigate} openFile={openFile} />{!filtered.length && <div className="empty-state"><Search /><p>No files match “{query}”.</p></div>}</section> : snapshot.file ? <><FileContent key={snapshot.file.path} file={snapshot.file} revision={snapshot.revision} navigate={openFile} demo={chatEnabled} extraMessages={chatEnabled ? chat.messages : undefined} endNote={hub && chatEnabled ? `Saved on ${hub.host} · new messages go to ${chatLog}` : undefined} />{chatEnabled && chat.pending && <div className="typing-message" aria-hidden="true"><span>quirqy</span><div><i /><i /><i /></div></div>}</> : <section>
+        <div className="section-heading"><div className="between"><h1>{activeName}</h1><span className="chip">{hub ? <><Cloud size={11} /> On the hub</> : <><LockKeyhole size={11} /> Read only</>}</span></div><p>{folderPath ? "Everything here comes straight from this folder." : "A little room for everything you’re working on."}</p></div>
         {index && <button className="folder-intro" onClick={() => navigate(index.path)}><span className="icon-box tint-0"><MessageCircle size={21} /></span><span><strong>Open {folderPath ? activeName.toLowerCase() : "your daily view"}</strong><small>Read the saved view in index.json</small></span><ArrowUpRight size={18} /></button>}
         <div className="list-caption"><span>{entries.length} {entries.length === 1 ? "item" : "items"}</span><span>{snapshot.rootName}{folderPath ? ` / ${folderPath}` : ""}</span></div>
         <EntryRows entries={entries} navigate={navigate} openFile={openFile} />
@@ -202,7 +212,7 @@ export function MirrorApp() {
     <footer className="workspace-footer">
       {chatEnabled ? <ChatComposer chat={chat} /> : <>
         <div className="search-composer"><Search size={18} strokeWidth={1.7} /><input ref={search} aria-label="Find files in this folder" placeholder="Find a file in this folder…" value={query} onChange={event => setQuery(event.target.value)} />{query ? <button className="search-action" aria-label="Clear search" onClick={() => setQuery("")}><X size={16} /></button> : <button className="search-action" aria-label="Refresh from disk" onClick={() => setRefresh(value => value + 1)}><RefreshCw size={16} className={checking ? "checking" : ""} /></button>}</div>
-      <div className="mirror-caption"><LockKeyhole size={10} />Read from disk<span>·</span>Changes appear automatically</div>
+      <div className="mirror-caption">{hub ? <><Cloud size={10} />Read from {hubPlace}</> : <><LockKeyhole size={10} />Read from disk</>}<span>·</span>Changes appear automatically</div>
       </>}
       <nav className="dock" aria-label="Workspace folders">{roots.length ? roots.map(root => { const Icon = icons.get(root.name.toLowerCase()) || Folder; return <button key={root.path} className={selectedRoot === root.path ? "dock-item active" : "dock-item"} onClick={() => openSection(root)} aria-label={`Open ${root.name}`} aria-current={selectedRoot === root.path ? "page" : undefined} title={root.name}><Icon size={23} strokeWidth={1.8} /><span>{root.name}</span></button>; }) : <button className="dock-item active" onClick={() => navigate("")} aria-label="Workspace"><FolderOpen size={23} /><span>Workspace</span></button>}</nav>
     </footer>
@@ -211,8 +221,8 @@ export function MirrorApp() {
       <div className="sheet-inner"><div className="sheet-header"><div><h2 id="sheet-title">{panel === "files" ? "Your workspace" : "A window into your files"}</h2><p>{panel === "files" ? "Folders and files, just as you saved them." : "Local, read-only, and entirely yours."}</p></div><button className="round-button" aria-label="Close panel" onClick={() => setPanel(null)}><X size={20} /></button></div>
       <div className="sheet-body">{panel === "files" ? <><button className="root-link" onClick={() => navigate("")}><House size={17} />Workspace root<ArrowUpRight size={16} /></button><EntryRows entries={roots} navigate={navigate} openFile={openFile} selected={selectedRoot} />{!!snapshot?.directory.entries.length && <><div className="divider" /><span className="eyebrow">IN THIS FOLDER</span><EntryRows entries={snapshot.directory.entries} navigate={navigate} openFile={openFile} selected={path} /></>}</> : <>
         <div className="about-steps"><div><span className="icon-box tint-0"><Folder size={20} /></span><p><strong>Folders become places.</strong>Every top-level folder gets a spot in the dock. Open it to browse what’s inside.</p></div><div><span className="icon-box tint-1"><FileCode2 size={20} /></span><p><strong>Files become the content.</strong>Read Markdown, explore JSON, view images, and follow links to other saved files.</p></div><div><span className="icon-box tint-2"><RefreshCw size={20} /></span><p><strong>Edit on disk. See it here.</strong>The view checks for changes every 1.5 seconds while this tab is visible.</p></div></div>
-        <div className="workspace-details"><span>Workspace</span><strong>{result?.snapshot.rootName || "workspace"}</strong><span>Last checked</span><strong>{lastRead || "Waiting for connection"}</strong><span>Access</span><strong><LockKeyhole size={12} /> Read only</strong><span>Connected services</span><strong><Check size={12} /> None required</strong></div>
-        <p className="about-footnote">Visual design adapted from OpenMuse. This app reads local files using Next.js, without an agent runtime or account.</p>
+        <div className="workspace-details"><span>Workspace</span><strong>{result?.snapshot.rootName || "workspace"}</strong><span>Last checked</span><strong>{lastRead || "Waiting for connection"}</strong><span>Access</span><strong>{hub ? <><Cloud size={12} /> Reads the space, saves chats</> : <><LockKeyhole size={12} /> Read only</>}</strong><span>Connected services</span><strong>{hub ? <><Cloud size={12} /> {hubPlace}{hub.author ? ` as ${hub.author}` : ""}</> : <><Check size={12} /> None required</>}</strong></div>
+        <p className="about-footnote">Visual design adapted from OpenMuse. {hub ? "This app reads the space from the hub and saves chats there, using Next.js on this machine." : "This app reads local files using Next.js, without an agent runtime or account."}</p>
       </>}</div></div>
     </dialog>
     {choosingRoot && <RootPicker onClose={() => setChoosingRoot(false)} />}

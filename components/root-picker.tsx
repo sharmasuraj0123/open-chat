@@ -44,7 +44,7 @@ export function RootPicker({ onClose }: { onClose: () => void }) {
       <div className="entry-list">{listing.directories.map(entry => <button className="entry-row" key={entry.path} disabled={saving} onClick={() => setPath(entry.path)}><Folder size={20} /><span className="entry-copy"><strong>{entry.name}</strong><span>Browse folder</span></span>{listing.selected === entry.path && <span className="chip">Current</span>}<ChevronRight size={16} /></button>)}</div>
       {!listing.directories.length && <p className="muted">No subfolders. You can still observe this folder.</p>}
       <button className="observe-button" disabled={saving} onClick={select}>{saving ? "Switching…" : "Observe this folder"}</button></>}
-      <p className="about-footnote">Files stay read-only. Your selection is remembered in this browser.</p>
+      <p className="about-footnote">Choosing a folder changes nothing in it. Your selection is remembered in this browser.</p>
     </div></div>
   </dialog>;
 }
