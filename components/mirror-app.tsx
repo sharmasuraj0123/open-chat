@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft, ArrowUpRight, Check, ChevronRight, CircleHelp, File, FileCode2,
+  ArrowLeft, ArrowUpRight, BookOpen, Check, Eye, Sparkles, ChevronRight, CircleHelp, File, FileCode2,
   FileImage, FileText, Folder, FolderOpen, House, Lightbulb, LockKeyhole,
   Menu, MessageCircle, PanelsTopLeft, RefreshCw, Search, Shapes, SquareCheck, X,
   type LucideIcon
@@ -17,10 +17,11 @@ import { QuirqyAvatar } from "./quirqy-avatar";
 import { RootPicker } from "./root-picker";
 
 const icons = new Map<string, LucideIcon>([
-  ["chat", MessageCircle], ["activity", PanelsTopLeft], ["ideas", Lightbulb],
+  ["chat", MessageCircle], ["activity", PanelsTopLeft], ["insights", Sparkles],
+  ["vision", Eye], ["library", BookOpen], ["ideas", Lightbulb],
   ["goals", SquareCheck], ["files", FolderOpen], ["apps", Shapes]
 ]);
-const order = ["chat", "activity", "ideas", "goals", "files", "apps"];
+const order = ["chat", "activity", "insights", "vision", "library", "ideas", "goals", "files", "apps"];
 const nameOf = (path: string) => path.split("/").filter(Boolean).at(-1) || "Workspace";
 const parentOf = (path: string) => path.split("/").slice(0, -1).join("/");
 function hashPath() { try { return decodeURIComponent(location.hash.replace(/^#\/?/, "")); } catch { return ""; } }
