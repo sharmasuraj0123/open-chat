@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft, ArrowUpRight, BookOpen, Check, Eye, Sparkles, ChevronRight, CircleHelp, File, FileCode2,
+  ArrowLeft, ArrowUpRight, BookOpen, Check, ChevronRight, CircleHelp, File, FileCode2,
   FileImage, FileText, Folder, FolderOpen, House, Lightbulb, LockKeyhole,
   Menu, MessageCircle, PanelsTopLeft, RefreshCw, Search, Shapes, SquareCheck, X,
   type LucideIcon
@@ -17,8 +17,8 @@ import { QuirqyAvatar } from "./quirqy-avatar";
 import { RootPicker } from "./root-picker";
 
 const icons = new Map<string, LucideIcon>([
-  ["chat", MessageCircle], ["activity", PanelsTopLeft], ["insights", Sparkles],
-  ["vision", Eye], ["library", BookOpen], ["ideas", Lightbulb],
+  ["chat", MessageCircle], ["activity", PanelsTopLeft], ["insights", Lightbulb],
+  ["vision", SquareCheck], ["library", BookOpen], ["ideas", Lightbulb],
   ["goals", SquareCheck], ["files", FolderOpen], ["apps", Shapes]
 ]);
 const order = ["chat", "activity", "insights", "vision", "library", "ideas", "goals", "files", "apps"];
