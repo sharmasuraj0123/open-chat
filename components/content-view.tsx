@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import type { FileView } from "@/lib/types";
 import { parseJsonl, jsonlPost } from "@/lib/jsonl";
 import { parseUrlFile } from "@/lib/url-file";
+import { isConversation } from "@/lib/conversation";
 
 type ObjectValue = Record<string, unknown>;
 type Navigate = (path: string) => void;
@@ -74,11 +75,9 @@ function JsonlFeed({ content, filePath, navigate }: { content: string; filePath:
   </section>;
 }
 
-export function isConversation(data: unknown): data is ObjectValue & { messages: ObjectValue[] } {
-  return object(data) && data.type === "conversation" && Array.isArray(data.messages) && data.messages.every(message => object(message) && typeof message.content === "string" && ["user", "assistant", "system"].includes(string(message.role)));
-}
+export { isConversation };
 
-function Conversation({ data, filePath, navigate, demo }: { data: ObjectValue & { messages: ObjectValue[] }; filePath: string; navigate: Navigate; demo?: boolean }) {
+function Conversation({ data, filePath, navigate, demo, endNote }: { data: ObjectValue & { messages: ObjectValue[] }; filePath: string; navigate: Navigate; demo?: boolean; endNote?: string }) {
   return <div className="conversation">
     <div className="conversation-intro"><span className="eyebrow">A LITTLE ROOM FOR YOUR FILES</span><h1>{string(data.title) || "Conversation"}</h1>{string(data.subtitle) && <p>{string(data.subtitle)}</p>}</div>
     <div className="messages">{data.messages.map((message, index) => <article key={index} className={`message ${string(message.role)}`}>
@@ -88,7 +87,7 @@ function Conversation({ data, filePath, navigate, demo }: { data: ObjectValue & 
       </div>
       {message.role === "user" && string(message.time) && <span className="message-time">{string(message.time)}</span>}
     </article>)}</div>
-    <div className="conversation-end"><LockKeyhole size={12} />{demo ? "Sample conversation · files stay unchanged" : "Saved conversation · read from this file"}</div>
+    <div className="conversation-end"><LockKeyhole size={12} />{endNote ?? (demo ? "Sample conversation · files stay unchanged" : "Saved conversation · read from this file")}</div>
   </div>;
 }
 
@@ -125,7 +124,7 @@ function UrlPreview({ content, name }: { content: string; name: string }) {
   </section>;
 }
 
-export function FileContent({ file, revision, navigate, demo = false, extraMessages = [] }: { file: FileView; revision: string; navigate: Navigate; demo?: boolean; extraMessages?: ObjectValue[] }) {
+export function FileContent({ file, revision, navigate, demo = false, extraMessages = [], endNote }: { file: FileView; revision: string; navigate: Navigate; demo?: boolean; extraMessages?: ObjectValue[]; endNote?: string }) {
   const [source, setSource] = useState(false);
   const canReadSource = typeof file.content === "string";
   const src = `/api/file?path=${encodeURIComponent(file.path)}&v=${encodeURIComponent(revision)}`;
@@ -134,7 +133,7 @@ export function FileContent({ file, revision, navigate, demo = false, extraMessa
   else if (source && canReadSource) content = <pre className="source-code"><code>{file.content}</code></pre>;
   else if (file.format === "url") content = <UrlPreview content={file.content || ""} name={file.name} />;
   else if (file.format === "jsonl") content = <JsonlFeed key={file.path} content={file.content || ""} filePath={file.path} navigate={navigate} />;
-  else if (file.format === "json" && isConversation(file.data)) content = <Conversation data={{ ...file.data, messages: [...file.data.messages, ...extraMessages] }} filePath={file.path} navigate={navigate} demo={demo} />;
+  else if (file.format === "json" && isConversation(file.data)) content = <Conversation data={{ ...file.data, messages: [...file.data.messages, ...extraMessages] }} filePath={file.path} navigate={navigate} demo={demo} endNote={endNote} />;
   else if (file.format === "json" && object(file.data) && file.data.type === "collection" && Array.isArray(file.data.items) && file.data.items.every(item => object(item) && typeof item.title === "string")) content = <Collection data={file.data as ObjectValue & { items: ObjectValue[] }} navigate={navigate} />;
   else if (file.format === "json" && !file.error) content = <div className="document-card"><JsonNode value={file.data} /></div>;
   else if (file.format === "markdown") content = <article className="document-card"><Markdown content={file.content || ""} filePath={file.path} navigate={navigate} /></article>;

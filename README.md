@@ -2,7 +2,7 @@
 
 **open-chat** is a Next.js workspace with read-only file access and a browser-local sample chat with **quirqy**, the assistant identity shown in the header and beside saved assistant messages. It follows OpenMuse's visual design while taking its content directly from a local directory.
 
-Folders provide navigation. Files provide documents, data, cards, and saved conversations. Change those files with your editor, scripts, or your own API, and the open app reflects the changes. No model API key, database, hosted agent runtime, or cloud service is required.
+Folders provide navigation. Files provide documents, data, cards, and saved conversations. Change those files with your editor, scripts, or your own API, and the open app reflects the changes. No model API key, database, hosted agent runtime, or cloud service is required. Optionally, a [spacehub](https://hub.quirq.dev) space can be the backend instead of a local folder, and then chats are saved there too (see [Use a spacehub space as the backend](#use-a-spacehub-space-as-the-backend)).
 
 ## Run locally
 
@@ -32,6 +32,47 @@ MIRROR_ROOT=/absolute/path/to/your/content
 
 On Windows, forward slashes work too, for example `MIRROR_ROOT=D:/my-content`. Relative paths are resolved from the app directory. Run the app as a Node service with access to that directory; the browser itself does not read your disk directly.
 
+## Use a spacehub space as the backend
+
+open-chat can read and write a spacehub space instead of a local folder. Each project of the space is a folder showing its default branch, and the messages you send in a conversation are saved to the hub as commits. They follow you to other devices, and the people and agents working in that space see them and can reply.
+
+1. Sign in once with GitHub: `spacehub auth login` (install the CLI with spacehub's `scripts/install-cli.sh`). Saving needs a builder or agent that can push to the space. Reading needs no sign-in.
+2. Put the space in `.env.local` and restart the server:
+
+```dotenv
+SPACEHUB_SPACE=quirq
+# or one project as the workspace root:
+# SPACEHUB_SPACE=quirq/quirq
+# optional, these are the defaults:
+# SPACEHUB_SERVER=wss://hub.quirq.dev
+# SPACEHUB_DB=spacehub
+# machines without a saved login, and agents: the output of `spacehub auth token` or `spacehub agent token <agent>`
+# SPACEHUB_TOKEN=...
+```
+
+The header then shows **Live on hub.quirq.dev**. Unset `SPACEHUB_SPACE` and the file-system backend works exactly as before.
+
+How it works:
+
+- **Reading.** The Next.js server opens one SpacetimeDB connection (the `spacetimedb` TypeScript SDK with spacehub's generated bindings in `lib/hub/module_bindings`) and subscribes to the space's projects and branches. Git objects are downloaded from each project's object log as it grows and kept in memory; nothing is written to disk. The browser never connects to the hub and never sees the token, which comes from `SPACEHUB_TOKEN` or from the login `spacehub auth login` saved in `~/.spacehub/config.json` (`SPACEHUB_HOME` moves it).
+- **Live changes.** The usual 1.5-second refresh shows pushes from anywhere: other open-chat servers, clones kept current by `spacehub project sync --watch --auto`, agents started with `spacehub agent run`, or a plain `git push quirq`.
+- **Saving chats.** On the hub every conversation file gets a composer. A new message is appended to `<conversation>.log.jsonl` beside the conversation (`Chat/index.json` saves to `Chat/index.log.jsonl`) and committed to the project's default branch as `chat: 1 message in Chat/index.log.jsonl`, authored by your builder. `demoReplies` still adds sample replies, which are saved the same way. Drafts stay in the browser tab. An agent or person replies by appending a line such as `{"id":"r1","role":"assistant","author":"scout","content":"..."}` to the log and pushing.
+- **Two writers at once.** The hub moves a branch only from the commit the writer saw. When someone else pushed first, open-chat reads the newer log and appends again on top of it (up to five tries), so no message is lost and nothing needs merging.
+- **Offline.** The last loaded view stays on screen, the header shows **Reconnecting to the hub**, and the connection retries by itself. A message sent meanwhile is refused with **Not saved** and stays in the composer.
+- **Folders.** The quirqy name opens the picker over the space, so you can observe one project or folder; the choice is remembered in this browser.
+
+Limits: every hub project can be read by anyone who can reach the hub, including the chats saved there. The server keeps every object of the space's projects, history included, in memory, which suits workspace-sized spaces. A chat log stops taking messages at the 2 MB text-preview limit; start a new conversation file then. Reset is not offered on the hub, since the history is shared and kept in git.
+
+To move existing local content into a space, push it as a project:
+
+```bash
+cd /path/to/your/content
+git init -b main && git add -A && git commit -m "open-chat workspace"
+spacehub project create quirq/notes --source . --push
+```
+
+When spacehub's module changes, regenerate the bindings with `spacetime generate --lang typescript --out-dir lib/hub/module_bindings --module-path <spacehub checkout>/module`.
+
 ## Appearance
 
 Use the appearance icon beside the help button to choose **Light**, **Dark**, or **System**. System is the default and follows your device, including changes while the app is open. Your choice persists in this browser and synchronizes across its open tabs. It does not write to the content directory. Dark mode styles conversations, cards, documents, source/JSON views, navigation, menus, and notices; images and PDF contents retain their original colors.
@@ -54,7 +95,7 @@ The messages in the file remain saved records. A conversation can opt into an in
 { "type": "conversation", "demoReplies": "Chat/replies.json", "messages": [] }
 ```
 
-The sample Chat view includes seeded messages, suggested prompts, an editable composer, Enter to send, Shift+Enter for a new line, a typing state, Stop, and Reset. New messages and drafts are stored in session storage for this browser tab and conversation, including across reloads. Reset clears those local additions while preserving the saved messages in the file. Leaving a conversation cancels a pending sample reply. No workspace files are modified by chatting. Local demo history keeps the latest 100 added messages; each message and draft is limited to 4,000 characters.
+The sample Chat view includes seeded messages, suggested prompts, an editable composer, Enter to send, Shift+Enter for a new line, a typing state, Stop, and Reset. New messages and drafts are stored in session storage for this browser tab and conversation, including across reloads. Reset clears those local additions while preserving the saved messages in the file. Leaving a conversation cancels a pending sample reply. No workspace files are modified by chatting (the spacehub backend saves chats instead; see above). Local demo history keeps the latest 100 added messages; each message and draft is limited to 4,000 characters.
 
 Replies come from the first matching keyword rule in `Chat/replies.json`, or its fallback. Edit that file to change responses and suggested prompts; the app refreshes it from disk. It uses the following shape:
 
@@ -197,7 +238,7 @@ To add generation later, run your own API, script, model, or agent separately an
 
 ## Filesystem boundaries
 
-Content endpoints use read-only `GET` routes. The app has no content-write endpoint. Names starting with `.` and `node_modules` are excluded. Paths containing colons or backslashes are not exposed. Ordinary folders such as `dist` remain visible.
+Content endpoints use read-only `GET` routes. On disk the app has no content-write endpoint; only the spacehub backend saves, and only chat turns to a conversation's `.log.jsonl` (`POST /api/chat`, same-origin JSON). Names starting with `.` and `node_modules` are excluded. Paths containing colons or backslashes are not exposed. Ordinary folders such as `dist` remain visible.
 
 The backend enforces the configured root boundary: internal symlinks work, while links that escape the root or resolve to hidden paths are excluded. If a saved view cannot be refreshed, the UI reports the error and labels any retained view as the last saved view.
 
@@ -209,7 +250,14 @@ npm test
 npm run build
 ```
 
-The app includes filesystem/API, theme-initialization, and demo-chat configuration/session tests. Laptop layouts use a 960px maximum width; mobile retains the compact layout. Production builds currently report dynamic-filesystem tracing warnings because `MIRROR_ROOT` is resolved at runtime. Exact visual parity with upstream has not been independently verified.
+The app includes filesystem/API, theme-initialization, demo-chat configuration/session, and spacehub backend tests (git objects checked against git itself, an in-memory hub with concurrent writers, and the routes). One more test runs against a real hub and writes a chat log there, so it is opt-in:
+
+```bash
+OPEN_CHAT_HUB_TEST_SPACE=quirq OPEN_CHAT_HUB_TEST_CONVERSATION=quirq/Chat/index.json \
+  SPACEHUB_SERVER=ws://127.0.0.1:3000 SPACEHUB_TOKEN=... npm test
+```
+
+ Laptop layouts use a 960px maximum width; mobile retains the compact layout. Production builds currently report dynamic-filesystem tracing warnings because `MIRROR_ROOT` is resolved at runtime. Exact visual parity with upstream has not been independently verified.
 
 ## Visual attribution
 

@@ -1,5 +1,7 @@
-import { observationRoot } from "../../../lib/observation-root";
+import { hubRoot, observationRoot } from "../../../lib/observation-root";
 import { readPreview, safeMirrorError } from "../../../lib/filesystem";
+import { hubSource } from "../../../lib/backend";
+import { readHubPreview } from "../../../lib/hub/workspace";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +21,9 @@ export async function GET(request: Request): Promise<Response> {
   const headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", Vary: "Origin, Sec-Fetch-Site" };
   if (!isSameOrigin(request)) return Response.json({ error: "Cross-origin workspace access is not allowed." }, { status: 403, headers });
   try {
-    const preview = await readPreview(new URL(request.url).searchParams.get("path") ?? "", await observationRoot(request));
+    const requested = new URL(request.url).searchParams.get("path") ?? "";
+    const hub = hubSource();
+    const preview = hub ? await readHubPreview(hub, requested, hubRoot(request)) : await readPreview(requested, await observationRoot(request));
     return new Response(new Uint8Array(preview.bytes), {
       headers: {
         ...headers,

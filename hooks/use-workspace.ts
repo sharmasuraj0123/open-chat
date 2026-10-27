@@ -5,7 +5,7 @@ import type { WorkspaceSnapshot } from "@/lib/types";
 /** Fresh, abortable reads for the overlay and file-backed demo reply configuration. */
 export function useWorkspace(path: string | undefined) {
   const [result, setResult] = useState<{ path: string; snapshot: WorkspaceSnapshot }>();
-  const [failure, setFailure] = useState<{ path: string; message: string }>();
+  const [failure, setFailure] = useState<{ path: string; message: string; missing: boolean }>();
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision(value => value + 1), []);
   useEffect(() => {
@@ -23,13 +23,13 @@ export function useWorkspace(path: string | undefined) {
         const response = await fetch(`/api/workspace?path=${encodeURIComponent(path)}`, { cache: "no-store", signal: controller.signal, headers: etag ? { "If-None-Match": etag } : {} });
         if (response.status !== 304) {
           const data = await response.json();
-          if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : "This file could not be read.");
+          if (!response.ok) throw Object.assign(new Error(typeof data.error === "string" ? data.error : "This file could not be read."), { missing: response.status === 404 });
           etag = response.headers.get("ETag") || "";
           setResult({ path, snapshot: data as WorkspaceSnapshot });
         }
         setFailure(undefined);
       } catch (error) {
-        if (!controller.signal.aborted) setFailure({ path, message: error instanceof Error ? error.message : "This file could not be read." });
+        if (!controller.signal.aborted) setFailure({ path, message: error instanceof Error ? error.message : "This file could not be read.", missing: !!(error as { missing?: boolean })?.missing });
       } finally {
         pending = false;
         if (!controller.signal.aborted) timer = setTimeout(read, 1500);
@@ -40,5 +40,6 @@ export function useWorkspace(path: string | undefined) {
     document.addEventListener("visibilitychange", wake);
     return () => { controller.abort(); clearTimeout(timer); document.removeEventListener("visibilitychange", wake); };
   }, [path, revision]);
-  return { snapshot: result && result.path === path ? result.snapshot : undefined, error: failure && failure.path === path ? failure.message : "", refresh };
+  const failed = failure && failure.path === path ? failure : undefined;
+  return { snapshot: result && result.path === path ? result.snapshot : undefined, error: failed?.message ?? "", missing: !!failed?.missing, refresh };
 }

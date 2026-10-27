@@ -1,5 +1,7 @@
-import { observationRoot } from "../../../lib/observation-root";
+import { hubRoot, observationRoot } from "../../../lib/observation-root";
 import { loadWorkspace, safeMirrorError } from "../../../lib/filesystem";
+import { hubSource } from "../../../lib/backend";
+import { loadHubWorkspace } from "../../../lib/hub/workspace";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +21,9 @@ export async function GET(request: Request): Promise<Response> {
   const headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", Vary: "Origin, Sec-Fetch-Site" };
   if (!isSameOrigin(request)) return Response.json({ error: "Cross-origin workspace access is not allowed." }, { status: 403, headers });
   try {
-    const snapshot = await loadWorkspace(new URL(request.url).searchParams.get("path") ?? "", await observationRoot(request));
+    const requested = new URL(request.url).searchParams.get("path") ?? "";
+    const hub = hubSource();
+    const snapshot = hub ? await loadHubWorkspace(hub, requested, hubRoot(request)) : await loadWorkspace(requested, await observationRoot(request));
     const etag = `"${snapshot.revision}"`;
     const matches = request.headers.get("if-none-match")?.split(",").some((value) => {
       const candidate = value.trim().replace(/^W\//, "");
