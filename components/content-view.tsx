@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { FileView } from "@/lib/types";
 import { parseJsonl, jsonlPost } from "@/lib/jsonl";
+import { parseUrlFile } from "@/lib/url-file";
 
 type ObjectValue = Record<string, unknown>;
 type Navigate = (path: string) => void;
@@ -114,6 +115,16 @@ function ImagePreview({ src, name }: { src: string; name: string }) {
   return failed ? <div className="empty-state"><FileText /><h2>Preview unavailable</h2><p>The file may have changed or may not contain a supported image.</p></div> : <figure className="image-preview"><img src={src} alt={name} onError={() => setFailed(true)} /><figcaption>{name}</figcaption></figure>;
 }
 
+function UrlPreview({ content, name }: { content: string; name: string }) {
+  const url = parseUrlFile(content);
+  if (!url) return <div className="empty-state"><FileText /><h2>No valid web URL</h2><p>Save a single http:// or https:// address, or a Windows Internet Shortcut with a URL entry. Use Source to inspect this file.</p></div>;
+  return <section className="url-preview" aria-label="Webpage preview">
+    <div className="url-preview-bar"><span title={url}>{url}</span><a href={url} target="_blank" rel="noopener noreferrer">Open in new tab <ArrowUpRight size={15} /></a></div>
+    <iframe key={url} title={"Webpage: " + name} src={url} sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox" referrerPolicy="no-referrer" />
+    <p className="url-preview-note">Some websites block embedded previews. Use Open in new tab if the page does not load.</p>
+  </section>;
+}
+
 export function FileContent({ file, revision, navigate, demo = false, extraMessages = [] }: { file: FileView; revision: string; navigate: Navigate; demo?: boolean; extraMessages?: ObjectValue[] }) {
   const [source, setSource] = useState(false);
   const canReadSource = typeof file.content === "string";
@@ -121,6 +132,7 @@ export function FileContent({ file, revision, navigate, demo = false, extraMessa
   let content: React.ReactNode;
   if (file.error && !canReadSource) content = <div className="empty-state"><FileText /><h2>File on disk</h2><p>{file.error}</p><code>{file.path}</code></div>;
   else if (source && canReadSource) content = <pre className="source-code"><code>{file.content}</code></pre>;
+  else if (file.format === "url") content = <UrlPreview content={file.content || ""} name={file.name} />;
   else if (file.format === "jsonl") content = <JsonlFeed key={file.path} content={file.content || ""} filePath={file.path} navigate={navigate} />;
   else if (file.format === "json" && isConversation(file.data)) content = <Conversation data={{ ...file.data, messages: [...file.data.messages, ...extraMessages] }} filePath={file.path} navigate={navigate} demo={demo} />;
   else if (file.format === "json" && object(file.data) && file.data.type === "collection" && Array.isArray(file.data.items) && file.data.items.every(item => object(item) && typeof item.title === "string")) content = <Collection data={file.data as ObjectValue & { items: ObjectValue[] }} navigate={navigate} />;
