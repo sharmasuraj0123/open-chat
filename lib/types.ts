@@ -11,7 +11,7 @@ export interface Entry {
 
 export interface FileView extends Entry {
   kind: "file";
-  format: "json" | "markdown" | "text" | "image" | "pdf" | "unsupported";
+  format: "jsonl" | "json" | "markdown" | "text" | "image" | "pdf" | "unsupported";
   content?: string;
   data?: unknown;
   error?: string;

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Check, ChevronRight, Code2, FileText, LockKeyhole } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { FileView } from "@/lib/types";
+import { parseJsonl, jsonlPost } from "@/lib/jsonl";
 
 type ObjectValue = Record<string, unknown>;
 type Navigate = (path: string) => void;
@@ -45,6 +46,31 @@ function JsonNode({ value, name, depth = 0 }: { value: unknown; name?: string; d
     <summary><ChevronRight size={13} /><span>{name ?? (Array.isArray(value) ? "Array" : "Object")}</span><small>{pairs.length} {Array.isArray(value) ? "items" : "fields"}</small></summary>
     {depth < 8 ? <div className="json-children">{pairs.slice(0, 100).map(([key, child]) => <JsonNode key={key} name={key} value={child} depth={depth + 1} />)}{pairs.length > 100 && <p className="muted">{pairs.length - 100} more entries are available in Source.</p>}</div> : <p className="muted">Open Source to inspect deeper values.</p>}
   </details>;
+}
+
+function JsonlFeed({ content, filePath, navigate }: { content: string; filePath: string; navigate: Navigate }) {
+  const records = useMemo(() => parseJsonl(content), [content]);
+  const [page, setPage] = useState(0);
+  const pageSize = 25;
+  const pages = Math.max(1, Math.ceil(records.length / pageSize));
+  const currentPage = Math.min(page, pages - 1);
+  const invalid = records.filter(record => record.error).length;
+  return <section className="jsonl-feed" aria-label="JSONL feed">
+    <div className="feed-heading"><div><h1>File feed</h1><p>{records.length} {records.length === 1 ? "post" : "posts"} · In file order{invalid ? " · " + invalid + " invalid " + (invalid === 1 ? "line" : "lines") : ""}</p></div><span className="chip">JSONL</span></div>
+    {!records.length && <div className="empty-state"><FileText /><h2>No posts yet</h2><p>Add one JSON record per line to this file. Posts appear automatically.</p></div>}
+    <div className="feed-posts">{records.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map(record => {
+      if (record.error) return <article className="feed-post feed-post-error" key={record.line}><header><strong>Incomplete post</strong><span className="chip">Line {record.line}</span></header><p className="muted">{record.error} Other posts remain available.</p><details className="feed-record"><summary>View original line</summary><pre className="source-code"><code>{record.raw}</code></pre></details></article>;
+      const post = jsonlPost(record.value);
+      return <article className="feed-post" key={record.line}>
+        <header><span className="feed-avatar" aria-hidden="true">{post.author.slice(0, 1).toUpperCase()}</span><div className="feed-byline"><strong>{post.author}</strong>{post.time && <span>{post.time}</span>}</div><span className="feed-line">Line {record.line}</span></header>
+        {post.kind && <span className="chip feed-kind">{post.kind}</span>}
+        {post.title && <h2>{post.title}</h2>}
+        {post.body ? <div className="feed-body"><Markdown content={post.body} filePath={filePath} navigate={navigate} /></div> : <div className="feed-data"><JsonNode value={record.value} /></div>}
+        {post.body && <details className="feed-record"><summary>View JSON record</summary><JsonNode value={record.value} /></details>}
+      </article>;
+    })}</div>
+    {pages > 1 && <nav className="feed-pagination" aria-label="Feed pages"><button disabled={!currentPage} onClick={() => setPage(currentPage - 1)}>Previous</button><span role="status">Page {currentPage + 1} of {pages}</span><button disabled={currentPage === pages - 1} onClick={() => setPage(currentPage + 1)}>Next</button></nav>}
+  </section>;
 }
 
 export function isConversation(data: unknown): data is ObjectValue & { messages: ObjectValue[] } {
@@ -95,6 +121,7 @@ export function FileContent({ file, revision, navigate, demo = false, extraMessa
   let content: React.ReactNode;
   if (file.error && !canReadSource) content = <div className="empty-state"><FileText /><h2>File on disk</h2><p>{file.error}</p><code>{file.path}</code></div>;
   else if (source && canReadSource) content = <pre className="source-code"><code>{file.content}</code></pre>;
+  else if (file.format === "jsonl") content = <JsonlFeed key={file.path} content={file.content || ""} filePath={file.path} navigate={navigate} />;
   else if (file.format === "json" && isConversation(file.data)) content = <Conversation data={{ ...file.data, messages: [...file.data.messages, ...extraMessages] }} filePath={file.path} navigate={navigate} demo={demo} />;
   else if (file.format === "json" && object(file.data) && file.data.type === "collection" && Array.isArray(file.data.items) && file.data.items.every(item => object(item) && typeof item.title === "string")) content = <Collection data={file.data as ObjectValue & { items: ObjectValue[] }} navigate={navigate} />;
   else if (file.format === "json" && !file.error) content = <div className="document-card"><JsonNode value={file.data} /></div>;

@@ -159,6 +159,7 @@ async function readLimitedBytes(resolved: string, limit: number): Promise<Buffer
 }
 
 function fileFormat(entry: Entry): FileView["format"] {
+  if (["jsonl", "ndjson"].includes(entry.extension)) return "jsonl";
   if (entry.extension === "json") return "json";
   if (["md", "markdown", "mdx"].includes(entry.extension)) return "markdown";
   if (IMAGE_MIME.has(entry.extension)) return "image";
